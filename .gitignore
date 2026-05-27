@@ -9,3 +9,9 @@ desktop.ini
 # 编辑器备份
 *.swp
 *~
+
+# IDE 项目配置
+.idea/
+
+# Superpowers 插件运行时数据
+.superpowers/

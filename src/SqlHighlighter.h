@@ -10,6 +10,8 @@ class SqlHighlighter : public QSyntaxHighlighter {
 public:
     explicit SqlHighlighter(QTextDocument* parent = nullptr);
 
+    void markError(int col); // 在第 col 列(1-based)画红色波浪下划线
+
 protected:
     void highlightBlock(const QString& text) override;
 

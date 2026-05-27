@@ -2,9 +2,14 @@
 
 #include <QColor>
 #include <QFont>
+#include <QTextCursor>
+#include <QTextDocument>
 
 SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-    // 关键字:Tokyo Twilight 暖珊瑚 + 粗体
+    // ---- 1. 注释 (最后匹配,优先级最高,先加 → 后被字符串覆盖不了) ----
+    // 放最后再加,这里先占位,实际顺序见下方
+
+    // ---- 2. 关键字:暖珊瑚 + 粗体 ----
     QTextCharFormat keywordFmt;
     keywordFmt.setForeground(QColor(QStringLiteral("#FF6B5C")));
     keywordFmt.setFontWeight(QFont::Bold);
@@ -19,27 +24,63 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
         QStringLiteral("DESC"),   QStringLiteral("LIKE"), QStringLiteral("COUNT")
     };
     for (const QString& kw : kKeywords) {
-        Rule r;
-        r.pattern = QRegularExpression(
-            QStringLiteral("\\b%1\\b").arg(kw),
-            QRegularExpression::CaseInsensitiveOption);
-        r.format = keywordFmt;
-        rules_.push_back(r);
+        rules_.push_back({
+            QRegularExpression(QStringLiteral("\\b%1\\b").arg(kw),
+                               QRegularExpression::CaseInsensitiveOption),
+            keywordFmt
+        });
     }
 
-    // 数字:柔和绿
+    // ---- 3. 数字:柔和绿 ----
     QTextCharFormat numberFmt;
     numberFmt.setForeground(QColor(QStringLiteral("#98C379")));
-    Rule numberRule;
-    numberRule.pattern = QRegularExpression(QStringLiteral("\\b[0-9]+(?:\\.[0-9]+)?\\b"));
-    numberRule.format  = numberFmt;
-    rules_.push_back(numberRule);
+    rules_.push_back({
+        QRegularExpression(QStringLiteral("\\b[0-9]+(?:\\.[0-9]+)?\\b")),
+        numberFmt
+    });
 
-    // 字符串:柔金。允许 '' / "" 转义,与 Lexer 行为一致。
+    // ---- 4. 运算符:淡紫 ----
+    QTextCharFormat opFmt;
+    opFmt.setForeground(QColor(QStringLiteral("#BB9AF7")));
+    rules_.push_back({
+        QRegularExpression(QStringLiteral("[=!<>]+")),
+        opFmt
+    });
+
+    // ---- 5. 表名:柔金 ----
+    QTextCharFormat tableFmt;
+    tableFmt.setForeground(QColor(QStringLiteral("#D4A574")));
+    rules_.push_back({
+        QRegularExpression(
+            QStringLiteral("\\b(?:studentTable|classTable|courseTable|scoreTable)\\b"),
+            QRegularExpression::CaseInsensitiveOption),
+        tableFmt
+    });
+
+    // ---- 6. 列名:蓝色 ----
+    QTextCharFormat colFmt;
+    colFmt.setForeground(QColor(QStringLiteral("#7DCFFF")));
+    rules_.push_back({
+        QRegularExpression(
+            QStringLiteral("\\b(?:id|name|sex|class_id|stu_id|course_id|score)\\b"),
+            QRegularExpression::CaseInsensitiveOption),
+        colFmt
+    });
+
+    // ---- 7. 字符串:覆盖列名/表名 ----
     QTextCharFormat stringFmt;
     stringFmt.setForeground(QColor(QStringLiteral("#D4A574")));
     rules_.push_back({QRegularExpression(QStringLiteral("'(?:[^']|'')*'")), stringFmt});
     rules_.push_back({QRegularExpression(QStringLiteral("\"(?:[^\"]|\"\")*\"")), stringFmt});
+
+    // ---- 8. 注释:灰斜体,最后加 → 覆盖所有 ----
+    QTextCharFormat commentFmt;
+    commentFmt.setForeground(QColor(QStringLiteral("#565F89")));
+    commentFmt.setFontItalic(true);
+    rules_.push_back({
+        QRegularExpression(QStringLiteral("--[^\\n]*")),
+        commentFmt
+    });
 }
 
 void SqlHighlighter::highlightBlock(const QString& text) {
@@ -50,4 +91,22 @@ void SqlHighlighter::highlightBlock(const QString& text) {
             setFormat(m.capturedStart(), m.capturedLength(), r.format);
         }
     }
+}
+
+void SqlHighlighter::markError(int col) {
+    if (col <= 0 || !document()) return;
+    const QString text = document()->toPlainText();
+    const int pos = col - 1; // 转为 0-based
+    if (pos >= text.length()) return;
+
+    QTextCursor cursor(document());
+    cursor.setPosition(pos);
+    cursor.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor);
+    if (cursor.anchor() == cursor.position())
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+
+    QTextCharFormat fmt;
+    fmt.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+    fmt.setUnderlineColor(QColor(QStringLiteral("#FF5555")));
+    cursor.mergeCharFormat(fmt);
 }
