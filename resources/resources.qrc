@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>style.qss</file>
         <file>empty.svg</file>
+        <file>welcome.svg</file>
     </qresource>
 </RCC>

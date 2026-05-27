@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+  <!-- Database cylinder body -->
+  <line x1="58" y1="62" x2="58" y2="98" stroke="#2A2C3D" stroke-width="1.5"/>
+  <line x1="142" y1="62" x2="142" y2="98" stroke="#2A2C3D" stroke-width="1.5"/>
+  <!-- Bottom ellipse -->
+  <ellipse cx="100" cy="98" rx="42" ry="11" fill="#1E2030" stroke="#2A2C3D" stroke-width="1.5"/>
+  <!-- Middle stripe (dashed) -->
+  <ellipse cx="100" cy="80" rx="42" ry="11" fill="none" stroke="#2A2C3D" stroke-width="1" stroke-dasharray="4 3"/>
+  <!-- Top ellipse fill then stroke -->
+  <ellipse cx="100" cy="62" rx="42" ry="11" fill="#23253A" stroke="#2A2C3D" stroke-width="1.5"/>
+  <!-- Accent dots on top ellipse -->
+  <circle cx="78" cy="62" r="4" fill="#FF6B5C"/>
+  <circle cx="92" cy="62" r="4" fill="#D4A574"/>
+  <circle cx="106" cy="62" r="4" fill="#7A7D8B"/>
+  <!-- Small table grid below cylinder -->
+  <rect x="64" y="113" width="72" height="30" rx="4" fill="none" stroke="#2A2C3D" stroke-width="1"/>
+  <line x1="64" y1="123" x2="136" y2="123" stroke="#2A2C3D" stroke-width="1"/>
+  <line x1="100" y1="113" x2="100" y2="143" stroke="#2A2C3D" stroke-width="0.8"/>
+  <line x1="70"  y1="130" x2="94"  y2="130" stroke="#5A5D6F" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <line x1="106" y1="130" x2="130" y2="130" stroke="#5A5D6F" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <line x1="70"  y1="137" x2="94"  y2="137" stroke="#5A5D6F" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <line x1="106" y1="137" x2="130" y2="137" stroke="#5A5D6F" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <!-- Floating accent sparks -->
+  <circle cx="152" cy="54" r="3.5" fill="#FF6B5C" opacity="0.85"/>
+  <circle cx="161" cy="43" r="2.5" fill="#D4A574" opacity="0.65"/>
+  <circle cx="144" cy="42" r="2"   fill="#FF6B5C" opacity="0.5"/>
+  <circle cx="48"  cy="56" r="2.5" fill="#D4A574" opacity="0.6"/>
+  <circle cx="40"  cy="46" r="2"   fill="#7A7D8B" opacity="0.5"/>
+</svg>
