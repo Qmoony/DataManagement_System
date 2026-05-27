@@ -7,8 +7,10 @@
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
+class QSplitter;
 class QStackedWidget;
 class QTableWidget;
+class QTreeWidget;
 class QVBoxLayout;
 class QGraphicsOpacityEffect;
 class QPropertyAnimation;
@@ -27,14 +29,17 @@ private slots:
     void onPrevPage();
     void onNextPage();
     void onClearInput();
+    void onSchemaContextMenu(const QPoint& pos);
 
 private:
     void buildUi();
     void buildHeader(QVBoxLayout* parent);
+    void buildMainArea(QVBoxLayout* parent);
     void buildContent(QVBoxLayout* parent);
     void buildPagination(QVBoxLayout* parent);
     void buildInputBar(QVBoxLayout* parent);
     void setupShortcuts();
+    void populateSchema();
 
     void renderResult(const Table& t);
     void refreshPage();
@@ -49,6 +54,8 @@ private:
     QString dataDir() const;
 
     QLabel*           headerTitle_   = nullptr;
+
+    QTreeWidget*      schemaTree_    = nullptr;
 
     QStackedWidget*   contentStack_  = nullptr;
     QTableWidget*     table_         = nullptr;

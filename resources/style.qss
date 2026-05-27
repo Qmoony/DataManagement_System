@@ -63,6 +63,7 @@ QTableWidget::item {
 
 QTableWidget::item:hover {
     background-color: #23253A;
+    border-left: 3px solid #FF6B5C;
 }
 
 QTableWidget::item:selected {
@@ -164,6 +165,39 @@ QLabel#pageLabel {
     font-size: 10pt;
     background: transparent;
     padding: 0 12px;
+}
+
+/* ---------- Schema 面板 ---------- */
+QTreeWidget#schemaTree {
+    background-color: #191B27;
+    border: none;
+    border-right: 1px solid #2A2C3D;
+    color: #E9E5D8;
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 9pt;
+    padding: 8px 0;
+    outline: 0;
+}
+
+QTreeWidget#schemaTree::item {
+    padding: 3px 10px;
+    border: none;
+}
+
+QTreeWidget#schemaTree::item:hover {
+    background-color: #23253A;
+    border-radius: 3px;
+}
+
+QTreeWidget#schemaTree::item:selected {
+    background-color: #23253A;
+    color: #E9E5D8;
+}
+
+/* Splitter handle */
+QSplitter::handle:horizontal {
+    background-color: #2A2C3D;
+    width: 1px;
 }
 
 /* ---------- 空状态 ---------- */

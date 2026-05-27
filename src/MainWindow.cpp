@@ -5,29 +5,37 @@
 #include "sql/Lexer.h"
 #include "sql/Parser.h"
 #include "sql/SqlError.h"
+#include "storage/CsvIO.h"
 
 #include <QApplication>
+#include <QClipboard>
 #include <QDir>
 #include <QEasingCurve>
+#include <QElapsedTimer>
 #include <QEvent>
+#include <QFont>
 #include <QFrame>
 #include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QPropertyAnimation>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QShortcut>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QSvgRenderer>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <algorithm>
@@ -54,9 +62,9 @@ void MainWindow::buildUi() {
     root->setSpacing(18);
 
     buildHeader(root);
-    buildContent(root);
-    buildPagination(root);
+    buildMainArea(root);
     buildInputBar(root);
+    populateSchema();
 }
 
 void MainWindow::buildHeader(QVBoxLayout* parent) {
@@ -65,7 +73,7 @@ void MainWindow::buildHeader(QVBoxLayout* parent) {
     col->setContentsMargins(0, 8, 0, 4);
     col->setSpacing(10);
 
-    headerTitle_ = new QLabel(QStringLiteral("欢迎来到邱建勇的数据管理系统"), this);
+    headerTitle_ = new QLabel(QStringLiteral("欢迎来到数据管理系统"), this);
     headerTitle_->setObjectName("headerTitle");
     headerTitle_->setAlignment(Qt::AlignCenter);
     col->addWidget(headerTitle_);
@@ -86,6 +94,35 @@ void MainWindow::buildHeader(QVBoxLayout* parent) {
     col->addWidget(subtle);
 
     parent->addWidget(wrap);
+}
+
+void MainWindow::buildMainArea(QVBoxLayout* parent) {
+    auto* splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->setObjectName("mainSplitter");
+    splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(1);
+
+    // Left: Schema tree
+    schemaTree_ = new QTreeWidget(splitter);
+    schemaTree_->setObjectName("schemaTree");
+    schemaTree_->setHeaderHidden(true);
+    schemaTree_->setFocusPolicy(Qt::NoFocus);
+    schemaTree_->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(schemaTree_, &QTreeWidget::customContextMenuRequested,
+            this, &MainWindow::onSchemaContextMenu);
+    splitter->addWidget(schemaTree_);
+
+    // Right: content + pagination
+    auto* right = new QWidget(splitter);
+    auto* rightLayout = new QVBoxLayout(right);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->setSpacing(0);
+    buildContent(rightLayout);
+    buildPagination(rightLayout);
+    splitter->addWidget(right);
+
+    splitter->setSizes({160, 900});
+    parent->addWidget(splitter, /*stretch=*/1);
 }
 
 void MainWindow::buildContent(QVBoxLayout* parent) {
@@ -124,18 +161,7 @@ void MainWindow::buildContent(QVBoxLayout* parent) {
     emptyStateSvg_ = new QLabel(emptyState_);
     emptyStateSvg_->setObjectName("emptyStateSvg");
     emptyStateSvg_->setAlignment(Qt::AlignCenter);
-    // 将 SVG 渲染为透明背景 QPixmap
-    {
-        QSvgRenderer renderer(QStringLiteral(":/empty.svg"));
-        const int w = 200, h = 160;
-        QPixmap pm(w, h);
-        pm.fill(Qt::transparent);
-        QPainter painter(&pm);
-        renderer.render(&painter);
-        painter.end();
-        emptyStateSvg_->setPixmap(pm);
-        emptyStateSvg_->setFixedSize(w, h);
-    }
+    emptyStateSvg_->setFixedSize(200, 160);
     auto* svgRow = new QHBoxLayout;
     svgRow->addStretch();
     svgRow->addWidget(emptyStateSvg_);
@@ -242,6 +268,72 @@ void MainWindow::setupShortcuts() {
     bind(QKeySequence(Qt::ALT  | Qt::Key_Left),    &MainWindow::onPrevPage);
 }
 
+void MainWindow::populateSchema() {
+    struct TableInfo { QString name; QStringList fallback; };
+    static const TableInfo kTables[] = {
+        { QStringLiteral("classTable"),   { QStringLiteral("id"), QStringLiteral("name") } },
+        { QStringLiteral("studentTable"), { QStringLiteral("id"), QStringLiteral("name"),
+                                            QStringLiteral("sex"), QStringLiteral("class_id") } },
+        { QStringLiteral("courseTable"),  { QStringLiteral("id"), QStringLiteral("name") } },
+        { QStringLiteral("scoreTable"),   { QStringLiteral("stu_id"), QStringLiteral("course_id"),
+                                            QStringLiteral("score") } },
+    };
+    QFont boldFont;
+    boldFont.setWeight(QFont::DemiBold);
+    for (const auto& info : kTables) {
+        auto* top = new QTreeWidgetItem(schemaTree_);
+        top->setText(0, info.name);
+        top->setData(0, Qt::UserRole, info.name);
+        top->setForeground(0, QColor(QStringLiteral("#D4A574")));
+        top->setFont(0, boldFont);
+
+        QStringList cols = info.fallback;
+        try {
+            Table t = CsvIO::load(dataDir() + "/" + info.name + ".csv", info.name);
+            cols = t.columns;
+        } catch (...) {}
+
+        for (const QString& col : cols) {
+            auto* child = new QTreeWidgetItem(top);
+            child->setText(0, col);
+            child->setForeground(0, QColor(QStringLiteral("#7A7D8B")));
+        }
+        schemaTree_->addTopLevelItem(top);
+    }
+    schemaTree_->expandAll();
+}
+
+void MainWindow::onSchemaContextMenu(const QPoint& pos) {
+    QTreeWidgetItem* item = schemaTree_->itemAt(pos);
+    if (!item || item->parent()) return; // only top-level table items
+
+    const QString tbl = item->data(0, Qt::UserRole).toString();
+    QStringList cols;
+    for (int i = 0; i < item->childCount(); ++i)
+        cols << item->child(i)->text(0);
+
+    QMenu menu(this);
+    menu.addAction(
+        QStringLiteral("SELECT * FROM %1").arg(tbl),
+        [this, tbl] { input_->setPlainText(QStringLiteral("SELECT * FROM %1").arg(tbl)); });
+
+    if (!cols.isEmpty()) {
+        const QString colList   = cols.join(QStringLiteral(", "));
+        const QString vals      = QStringList(cols.size(), QStringLiteral("''")).join(QStringLiteral(", "));
+        menu.addAction(
+            QStringLiteral("INSERT INTO %1 (%2) VALUES (...)").arg(tbl, colList),
+            [this, tbl, colList, vals] {
+                input_->setPlainText(
+                    QStringLiteral("INSERT INTO %1 (%2) VALUES (%3)").arg(tbl, colList, vals));
+            });
+    }
+    menu.addSeparator();
+    menu.addAction(QStringLiteral("复制表名"),
+                   [tbl] { QApplication::clipboard()->setText(tbl); });
+
+    menu.exec(schemaTree_->viewport()->mapToGlobal(pos));
+}
+
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     if (watched == input_ && event->type() == QEvent::KeyPress) {
         auto* ke = static_cast<QKeyEvent*>(event);
@@ -280,6 +372,18 @@ void MainWindow::onExecute() {
         return;
     }
     hasExecuted_ = true;
+
+    runBtn_->setEnabled(false);
+    runBtn_->setText(QStringLiteral("···"));
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+    auto guard = qScopeGuard([this] {
+        runBtn_->setText(QStringLiteral("执 行"));
+        runBtn_->setEnabled(true);
+    });
+
+    QElapsedTimer elapsed;
+    elapsed.start();
+
     try {
         Lexer  lexer(sql);
         auto   tokens = lexer.tokenize();
@@ -289,15 +393,17 @@ void MainWindow::onExecute() {
         Executor exe(dataDir());
         auto     res = exe.execute(ast.get());
 
+        const qint64 ms = elapsed.elapsed();
         if (res.operation == "SELECT") {
             renderResult(res.resultTable);
-            setStatus(QStringLiteral("SELECT 完成 · 返回 %1 行").arg(res.affectedRows));
+            setStatus(QStringLiteral("SELECT 完成 · 返回 %1 行 · 耗时 %2ms")
+                          .arg(res.affectedRows).arg(ms));
         } else {
             clearResult();
             renderEmpty(QStringLiteral("%1 已完成 · 影响 %2 行")
                             .arg(res.operation).arg(res.affectedRows));
-            setStatus(QStringLiteral("%1 完成 · 影响 %2 行")
-                          .arg(res.operation).arg(res.affectedRows));
+            setStatus(QStringLiteral("%1 完成 · 影响 %2 行 · 耗时 %3ms")
+                          .arg(res.operation).arg(res.affectedRows).arg(ms));
             QMessageBox box(this);
             box.setWindowTitle(QStringLiteral("执行成功"));
             box.setText(QStringLiteral("%1 已执行,影响 %2 行。")
@@ -406,6 +512,17 @@ void MainWindow::refreshPage() {
 }
 
 void MainWindow::renderEmpty(const QString& message) {
+    const QString svgPath = hasExecuted_
+        ? QStringLiteral(":/empty.svg")
+        : QStringLiteral(":/welcome.svg");
+    QSvgRenderer renderer(svgPath);
+    QPixmap pm(200, 160);
+    pm.fill(Qt::transparent);
+    QPainter painter(&pm);
+    renderer.render(&painter);
+    painter.end();
+    emptyStateSvg_->setPixmap(pm);
+
     emptyStateMsg_->setText(message);
     contentStack_->setCurrentIndex(1);
     paginationBar_->setVisible(false);
@@ -420,7 +537,9 @@ void MainWindow::clearResult() {
     table_->setColumnCount(0);
 }
 
-void MainWindow::showError(const QString& title, const QString& msg, int /*pos*/) {
+void MainWindow::showError(const QString& title, const QString& msg, int pos) {
+    if (pos > 0)
+        highlighter_->markError(pos);
     QMessageBox box(this);
     box.setWindowTitle(title);
     box.setText(msg);
