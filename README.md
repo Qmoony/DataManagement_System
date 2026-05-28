@@ -10,7 +10,7 @@
 
 - **SQL 编辑器**：语法高亮（关键字大小写不敏感）、错误提示（精确到列位置，红色波浪下划线标记出错 token）
 - **Schema 树面板**：左侧列出全部表及列名；右键菜单可一键生成 `SELECT *`、`INSERT INTO` 模板，或直接复制表名
-- **多表 JOIN**：支持链式 `INNER JOIN ... ON`
+- **多表 JOIN**：支持链式 `INNER JOIN ... ON`，以及 `FROM t1, t2, t3` 隐式 JOIN（逗号分隔，WHERE 负责过滤）
 - **分页渲染**：SELECT 结果每页 20 行，翻页不重跑查询；结果切换带淡入动画
 - **执行计时**：运行时按钮显示 `...`，完成后状态栏展示耗时（ms）
 - **欢迎 / 空状态插画**：首次打开渲染 `welcome.svg`，查询后无数据渲染 `empty.svg`
@@ -39,6 +39,11 @@ SELECT s.name, c.name, sc.score
   JOIN courseTable c  ON c.id = sc.course_id
  WHERE sc.score >= 90
  ORDER BY sc.score DESC;
+
+-- 隐式 JOIN（逗号多表，WHERE 过滤）
+SELECT s.name, sc.score
+  FROM studentTable s, scoreTable sc
+ WHERE sc.stu_id = s.id AND sc.score >= 90;
 
 -- 插入
 INSERT INTO studentTable VALUES (1001, '张三', '男', 1);

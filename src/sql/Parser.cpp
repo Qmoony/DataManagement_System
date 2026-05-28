@@ -134,6 +134,20 @@ StmtPtr Parser::parseSelect() {
         stmt->fromAlias = consume().text;
     }
 
+    // 隐式 JOIN：FROM t1, t2, t3（逗号分隔，ON 条件由 WHERE 承担）
+    while (match(TokenType::Comma)) {
+        JoinClause jc;
+        jc.table = expect(TokenType::Identifier, "FROM 中的表名").text;
+        if (peek().type == TokenType::As) {
+            consume();
+            jc.alias = expect(TokenType::Identifier, "AS 后的别名").text;
+        } else if (peek().type == TokenType::Identifier) {
+            jc.alias = consume().text;
+        }
+        // jc.on 保持 nullptr：完整笛卡尔积，WHERE 负责过滤
+        stmt->joins.push_back(std::move(jc));
+    }
+
     // 可选 JOIN 链(零个或多个)
     while (peek().type == TokenType::Join) {
         consume();
