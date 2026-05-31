@@ -7,9 +7,10 @@
      border     #DDE1EC  发丝线
      text       #1C2033  主文(深海军蓝)
      muted      #8B90A8  次级文本
-     header     #5B6CF4  靛蓝标签
-     accent     #5B6CF4  靛蓝强调
+     header     #4451D4  靛蓝标签(对比度优化,≥4.5:1)
+     accent     #5B6CF4  靛蓝强调(交互元素)
      press      #4451D4  按下态
+     disabled   #E8EAF0 / #B0B4CC  禁用按钮背景/文字
    ============================================================ */
 
 QMainWindow,
@@ -74,7 +75,7 @@ QTableWidget::item:selected {
 
 QHeaderView::section {
     background-color: #F0F2F7;
-    color: #5B6CF4;
+    color: #4451D4;
     font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
     font-size: 9pt;
     font-weight: 600;
@@ -160,7 +161,7 @@ QPushButton#pageButton:disabled {
 }
 
 QLabel#pageLabel {
-    color: #5B6CF4;
+    color: #4451D4;
     font-family: "JetBrains Mono", "Consolas", monospace;
     font-size: 10pt;
     background: transparent;
