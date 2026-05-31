@@ -16,6 +16,7 @@
 #include <QFont>
 #include <QFrame>
 #include <QGraphicsOpacityEffect>
+#include <QLineEdit>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -216,6 +217,26 @@ void MainWindow::buildPagination(QVBoxLayout* parent) {
     nextBtn_->setFocusPolicy(Qt::NoFocus);
     row->addWidget(nextBtn_);
 
+    auto* divider = new QFrame(paginationBar_);
+    divider->setFrameShape(QFrame::VLine);
+    divider->setFrameShadow(QFrame::Plain);
+    divider->setObjectName("pageJumpDivider");
+    row->addWidget(divider);
+
+    pageJumpEdit_ = new QLineEdit(paginationBar_);
+    pageJumpEdit_->setObjectName("pageJumpEdit");
+    pageJumpEdit_->setPlaceholderText(QStringLiteral("页码"));
+    pageJumpEdit_->setAlignment(Qt::AlignCenter);
+    pageJumpEdit_->setFixedWidth(52);
+    pageJumpEdit_->setFocusPolicy(Qt::ClickFocus);
+    row->addWidget(pageJumpEdit_);
+
+    jumpBtn_ = new QPushButton(QStringLiteral("跳转"), paginationBar_);
+    jumpBtn_->setObjectName("pageButton");
+    jumpBtn_->setCursor(Qt::PointingHandCursor);
+    jumpBtn_->setFocusPolicy(Qt::NoFocus);
+    row->addWidget(jumpBtn_);
+
     row->addStretch();
 
     paginationBar_->setVisible(false);
@@ -223,6 +244,8 @@ void MainWindow::buildPagination(QVBoxLayout* parent) {
 
     connect(prevBtn_, &QPushButton::clicked, this, &MainWindow::onPrevPage);
     connect(nextBtn_, &QPushButton::clicked, this, &MainWindow::onNextPage);
+    connect(pageJumpEdit_, &QLineEdit::returnPressed, this, &MainWindow::onJumpToPage);
+    connect(jumpBtn_,      &QPushButton::clicked,     this, &MainWindow::onJumpToPage);
 }
 
 void MainWindow::buildInputBar(QVBoxLayout* parent) {
@@ -438,6 +461,22 @@ void MainWindow::onNextPage() {
         ++currentPage_;
         refreshPage();
     }
+}
+
+void MainWindow::onJumpToPage() {
+    if (!paginationBar_->isVisible()) return;
+
+    const int total      = static_cast<int>(cachedResult_.rows.size());
+    const int totalPages = std::max(1, (total + kPageSize - 1) / kPageSize);
+
+    bool ok = false;
+    const int page = pageJumpEdit_->text().trimmed().toInt(&ok);
+    pageJumpEdit_->clear();
+
+    if (!ok || page < 1 || page > totalPages) return;
+
+    currentPage_ = page - 1;
+    refreshPage();
 }
 
 void MainWindow::onClearInput() {

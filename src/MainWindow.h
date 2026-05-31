@@ -5,6 +5,7 @@
 #include <QMainWindow>
 
 class QLabel;
+class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
 class QSplitter;
@@ -28,6 +29,7 @@ private slots:
     void onExecute();
     void onPrevPage();
     void onNextPage();
+    void onJumpToPage();
     void onClearInput();
     void onSchemaContextMenu(const QPoint& pos);
 
@@ -66,6 +68,8 @@ private:
     QWidget*          paginationBar_ = nullptr;
     QPushButton*      prevBtn_       = nullptr;
     QPushButton*      nextBtn_       = nullptr;
+    QLineEdit*        pageJumpEdit_  = nullptr;
+    QPushButton*      jumpBtn_       = nullptr;
     QLabel*           pageLabel_     = nullptr;
 
     QPlainTextEdit*   input_         = nullptr;
