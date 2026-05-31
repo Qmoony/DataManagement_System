@@ -11,7 +11,7 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 2. 关键字:暖珊瑚 + 粗体 ----
     QTextCharFormat keywordFmt;
-    keywordFmt.setForeground(QColor(QStringLiteral("#FF6B5C")));
+    keywordFmt.setForeground(QColor(QStringLiteral("#5B6CF4")));
     keywordFmt.setFontWeight(QFont::Bold);
 
     static const QStringList kKeywords = {
@@ -33,7 +33,7 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 3. 数字:柔和绿 ----
     QTextCharFormat numberFmt;
-    numberFmt.setForeground(QColor(QStringLiteral("#98C379")));
+    numberFmt.setForeground(QColor(QStringLiteral("#1E7A1E")));
     rules_.push_back({
         QRegularExpression(QStringLiteral("\\b[0-9]+(?:\\.[0-9]+)?\\b")),
         numberFmt
@@ -41,7 +41,7 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 4. 运算符:淡紫 ----
     QTextCharFormat opFmt;
-    opFmt.setForeground(QColor(QStringLiteral("#BB9AF7")));
+    opFmt.setForeground(QColor(QStringLiteral("#7B3FA0")));
     rules_.push_back({
         QRegularExpression(QStringLiteral("[=!<>]+")),
         opFmt
@@ -49,7 +49,7 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 5. 表名:柔金 ----
     QTextCharFormat tableFmt;
-    tableFmt.setForeground(QColor(QStringLiteral("#D4A574")));
+    tableFmt.setForeground(QColor(QStringLiteral("#B87333")));
     rules_.push_back({
         QRegularExpression(
             QStringLiteral("\\b(?:studentTable|classTable|courseTable|scoreTable)\\b"),
@@ -59,7 +59,7 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 6. 列名:蓝色 ----
     QTextCharFormat colFmt;
-    colFmt.setForeground(QColor(QStringLiteral("#7DCFFF")));
+    colFmt.setForeground(QColor(QStringLiteral("#0076C8")));
     rules_.push_back({
         QRegularExpression(
             QStringLiteral("\\b(?:id|name|sex|class_id|stu_id|course_id|score)\\b"),
@@ -69,13 +69,13 @@ SqlHighlighter::SqlHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 
     // ---- 7. 字符串:覆盖列名/表名 ----
     QTextCharFormat stringFmt;
-    stringFmt.setForeground(QColor(QStringLiteral("#D4A574")));
+    stringFmt.setForeground(QColor(QStringLiteral("#B87333")));
     rules_.push_back({QRegularExpression(QStringLiteral("'(?:[^']|'')*'")), stringFmt});
     rules_.push_back({QRegularExpression(QStringLiteral("\"(?:[^\"]|\"\")*\"")), stringFmt});
 
     // ---- 8. 注释:灰斜体,最后加 → 覆盖所有 ----
     QTextCharFormat commentFmt;
-    commentFmt.setForeground(QColor(QStringLiteral("#565F89")));
+    commentFmt.setForeground(QColor(QStringLiteral("#8B90A8")));
     commentFmt.setFontItalic(true);
     rules_.push_back({
         QRegularExpression(QStringLiteral("--[^\\n]*")),
@@ -107,6 +107,6 @@ void SqlHighlighter::markError(int col) {
 
     QTextCharFormat fmt;
     fmt.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
-    fmt.setUnderlineColor(QColor(QStringLiteral("#FF5555")));
+    fmt.setUnderlineColor(QColor(QStringLiteral("#D32F2F")));
     cursor.mergeCharFormat(fmt);
 }
