@@ -218,9 +218,8 @@ void MainWindow::buildPagination(QVBoxLayout* parent) {
     row->addWidget(nextBtn_);
 
     auto* divider = new QFrame(paginationBar_);
-    divider->setFrameShape(QFrame::VLine);
-    divider->setFrameShadow(QFrame::Plain);
     divider->setObjectName("pageJumpDivider");
+    divider->setFixedWidth(1);
     row->addWidget(divider);
 
     pageJumpEdit_ = new QLineEdit(paginationBar_);
@@ -232,7 +231,7 @@ void MainWindow::buildPagination(QVBoxLayout* parent) {
     row->addWidget(pageJumpEdit_);
 
     jumpBtn_ = new QPushButton(QStringLiteral("跳转"), paginationBar_);
-    jumpBtn_->setObjectName("pageButton");
+    jumpBtn_->setObjectName("jumpButton");
     jumpBtn_->setCursor(Qt::PointingHandCursor);
     jumpBtn_->setFocusPolicy(Qt::NoFocus);
     row->addWidget(jumpBtn_);
@@ -389,6 +388,7 @@ QString MainWindow::dataDir() const {
 // ---------------- 执行 ----------------
 
 void MainWindow::onExecute() {
+    if (pageJumpEdit_->hasFocus()) return;
     QString sql = input_->toPlainText().trimmed();
     if (sql.isEmpty()) {
         showError(QStringLiteral("提示"), QStringLiteral("请先输入要执行的 SQL 语句"));

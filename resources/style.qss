@@ -170,8 +170,8 @@ QLabel#pageLabel {
 
 /* ---------- 分页跳转输入框 ---------- */
 QFrame#pageJumpDivider {
-    color: #DDE1EC;
-    max-width: 1px;
+    background-color: #DDE1EC;
+    border: none;
 }
 
 QLineEdit#pageJumpEdit {
@@ -188,6 +188,34 @@ QLineEdit#pageJumpEdit {
 
 QLineEdit#pageJumpEdit:focus {
     border: 1px solid #5B6CF4;
+}
+
+QPushButton#jumpButton {
+    background-color: #FFFFFF;
+    color: #1C2033;
+    border: 1px solid #DDE1EC;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 10pt;
+    font-weight: 500;
+    min-height: 28px;
+}
+
+QPushButton#jumpButton:hover {
+    background-color: #E8EAFF;
+    border-color: #5B6CF4;
+    color: #5B6CF4;
+}
+
+QPushButton#jumpButton:pressed {
+    background-color: #DDE1EC;
+}
+
+QPushButton#jumpButton:disabled {
+    background-color: #E8EAF0;
+    color: #B0B4CC;
+    border-color: #DDE1EC;
 }
 
 /* ---------- Schema 面板 ---------- */
