@@ -168,6 +168,28 @@ QLabel#pageLabel {
     padding: 0 12px;
 }
 
+/* ---------- 分页跳转输入框 ---------- */
+QFrame#pageJumpDivider {
+    color: #DDE1EC;
+    max-width: 1px;
+}
+
+QLineEdit#pageJumpEdit {
+    background-color: #FFFFFF;
+    color: #1C2033;
+    border: 1px solid #DDE1EC;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 10pt;
+    selection-background-color: #5B6CF4;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit#pageJumpEdit:focus {
+    border: 1px solid #5B6CF4;
+}
+
 /* ---------- Schema 面板 ---------- */
 QTreeWidget#schemaTree {
     background-color: #F0F2F7;
